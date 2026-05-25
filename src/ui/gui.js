@@ -8,7 +8,6 @@ import Introduction from "./components/introduction.js";
 import Jobs from "./components/jobs.js";
 import OpHistory from "./components/ophistory.js";
 import OpParampanel from "./components/opparampanel/op_parampanel.js";
-import CommandPalette from "./dialogs/commandpalette.js";
 import OpSelect from "./dialogs/opselect.js";
 import BottomInfoAreaBar from "./elements/bottominfoareabar.js";
 import TransformsOverlay from "./elements/canvasoverlays/transformsoverlay.js";
@@ -59,12 +58,12 @@ import { GuiText } from "./text.js";
 import { setUpTheme } from "./theme.js";
 import defaultOps from "./defaultops.js";
 import IconBar from "./elements/iconbar.js";
-import { Commands } from "./commands/commands.js";
 import { InputBindings } from "./inputbindings.js";
 import TabInputBindings from "./components/tabs/tab_keybinds.js";
 import { CmdDebug } from "./commands/cmd_debug.js";
 import { isFocusOnEditor } from "./components/editor.js";
-import GradientEditor from "./dialogs/canv_gradienteditor.js";
+import { GradientEditor } from "./dialogs/canv_gradienteditor.js";
+import { CommandPalette } from "./dialogs/commandpalette.js";
 
 /**
  * @type {Gui}
@@ -1748,6 +1747,7 @@ export default class Gui extends Events
         this.keys.key(getSettingKeys("keybind_escape", "escape"), "Open \"Op Create\" dialog (or close current dialog)", "down", null, { "shiftKey": true }, esc);
 
         this.keys.key("Escape", "Toggle Tab Area", "down", null, { "cmdCtrl": true }, () => { this.maintabPanel.toggle(true); this.setLayout(); });
+        this.keys.key("b", "Toggle Tab Area", "down", null, { "cmdCtrl": true }, () => { this.maintabPanel.toggle(true); this.setLayout(); });
 
         this.keys.key("p", "Open Command Palette", "down", null, { "cmdCtrl": true }, () => { this.cmdPalette.show(); });
         this.keys.key("Enter", "Cycle size of renderer between normal and Fullscreen", "down", null, { "cmdCtrl": true }, () => { this.cycleCanvasSize(); });
@@ -2130,10 +2130,11 @@ export default class Gui extends Events
      * @param {number} x
      * @param {number} y
      * @param {number} z
+     * @param {string} text
      */
-    setTransform(id, x, y, z)
+    setTransform(id, x, y, z, text)
     {
-        if (this.shouldDrawOverlay) this.transformOverlay.add(this.corePatch().cgl, id, x, y, z);
+        if (this.shouldDrawOverlay) this.transformOverlay.add(this.corePatch().cgl, id, x, y, z, text);
     }
 
     /**
@@ -2453,13 +2454,9 @@ export default class Gui extends Events
     {
         const list = [];
         const vars = gui.corePatch().getVars();
-        console.log("vars", vars);
-        for (const i in vars)
-        {
-            list.push({ "cmd": i, "func": cb });
-        }
 
-        console.log("list", list);
+        for (const i in vars)
+            list.push({ "cmd": i, "func": (e) => { cb(e); } });
 
         const cp = new CommandPalette({ "showIcons": false,
             "cablesCommands": false,

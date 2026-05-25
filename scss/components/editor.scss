@@ -6,6 +6,11 @@
     height:100%
 }
 
+.cm-editor:not(.cm-focused) {
+  opacity: 0.9;
+  filter: grayscale(0.2);
+}
+
 .editor_textarea
 {
     background-color: var(--color-04);

@@ -1,9 +1,12 @@
 import { ModalBackground, ele } from "cables-shared-client";
 import { utils } from "cables";
+import { uuid } from "cables/src/core/utils.js";
 import { gui } from "../gui.js";
 import { platform } from "../platform.js";
 import { userSettings } from "../components/usersettings.js";
 import { Commands } from "../commands/commands.js";
+import { getHandleBarHtml } from "../utils/handlebars.js";
+import ModalDialog from "./modaldialog.js";
 
 Commands.init();
 
@@ -21,22 +24,26 @@ Commands.init();
  * @export
  * @class CommandPallete
  */
-export default class CommandPalette
+export class CommandPalette
 {
+    #id = uuid();
 
     /** @type {CommandPaletteOptions} */
     #options = {
         "cablesCommands": true,
         "showCategory": true,
-        "showIcons": true };
+        "showIcons": true
+    };
 
     _lastSearch = "";
     _findTimeoutId = null;
-    _cursorIndex = 0;
+    #cursorIndex = 0;
     _numResults = 0;
     _bookmarkActiveIcon = "icon-pin-filled";
     _bookmarkInactiveIcon = "icon-pin-outline";
     _defaultIcon = "square";
+
+    #resultCommands = [];
 
     #bg = new ModalBackground();
 
@@ -44,8 +51,8 @@ export default class CommandPalette
     dynamicCmds = [];
 
     /**
- * @param {CommandPaletteOptions} options
- */
+     * @param {CommandPaletteOptions} options
+     */
     constructor(options = null)
     {
         if (options) this.#options = options;
@@ -61,8 +68,12 @@ export default class CommandPalette
         switch (e.which)
         {
         case 13:
-            const el = ele.byId("result" + this._cursorIndex);
-            if (el)el.click();
+            const rcmd = this.#resultCommands[this.#cursorIndex];
+
+            const el = ele.byId("result" + rcmd.id);
+
+            if (el) el.click();
+            else console.log("no ele");
             break;
         case 27:
             this.close();
@@ -88,14 +99,21 @@ export default class CommandPalette
 
     show()
     {
-        this._cursorIndex = 0;
+        this.#cursorIndex = 0;
         gui.closeModal();
         this.#bg.show();
         // document.getElementById("modalbg").style.display = "block";
+
+        const html = getHandleBarHtml("cmdPalette", { "id": this.#id });
+
         ele.show(ele.byId("cmdpalette"));
-        ele.byId("cmdinput").focus();
-        ele.byId("cmdinput").value = this._lastSearch;
-        document.getElementById("cmdinput").setSelectionRange(0, this._lastSearch.length);
+
+        ele.byId("cmdpalette").innerHTML = html;
+
+        const elInput = ele.byId("cmdinput" + this.#id);
+        elInput.focus();
+        elInput.value = this._lastSearch;
+        elInput.setSelectionRange(0, this._lastSearch.length);
 
         clearTimeout(this._findTimeoutId);
         this._findTimeoutId = setTimeout(() =>
@@ -106,9 +124,14 @@ export default class CommandPalette
         this.keyDown = this.keyDown.bind(this);
         document.addEventListener("keydown", this.keyDown);
 
-        ele.byId("cmdinput").addEventListener("input", () =>
+        elInput.addEventListener("input", () =>
         {
-            this.doSearch(ele.byId("cmdinput").value);
+            this.doSearch(elInput.value);
+        });
+
+        ele.clickable(ele.byId("cmdClose" + this.#id), () =>
+        {
+            this.close();
         });
     }
 
@@ -146,23 +169,50 @@ export default class CommandPalette
         gui.iconBarLeft.refresh();
     }
 
+    execIndex(el)
+    {
+        const index = el.dataset.index;
+        const cmd = el.dataset.cmd;
+
+        if (!this.#options.cablesCommands)
+        {
+            this.#options.commands[index].func(cmd);
+            this.close();
+        }
+    }
+
     /**
      * @param {PointerEvent} ev
      */
     onResultClick(ev)
     {
         const el = ev.target;
-        const cmd = el.dataset.cmd;
+        const cmdId = el.dataset.cmdid;
+        const cmd = Commands.getById(cmdId);
 
         this.close();
 
+        if (!cmd)
+        {
+            console.log("no cmd", this.#options.commands);
+        }
+
+        if (this.#options.commands)
+        {
+            for (let i = 0; i < this.#options.commands.length; i++)
+            {
+                if (this.#options.commands[i].id == cmdId)
+                    this.#options.commands[i].func(this.#options.commands[i]);
+            }
+        }
+        else
         if (el.classList.contains("dyn"))
         {
             this.dynamicCmds[el.dataset.index].func();
         }
         else
         {
-            Commands.exec(cmd);
+            Commands.exec(cmd.cmd);
         }
     }
 
@@ -200,10 +250,16 @@ export default class CommandPalette
     {
         let dynclass = "";
 
+        this.#resultCommands.push(cmd);
         if (cmd.dyn)dynclass = "dyn";
+        if (!cmd.id)cmd.id = uuid();
 
         let html = "";
-        html += "<div class=\"result " + dynclass + "\" id=\"result" + num + "\" data-index=\"" + idx + "\" data-cmd=\"" + cmd.cmd + "\" onclick=gui.cmdPalette.onResultClick(event)>";
+        html += "<div class=\"result " + dynclass + "\" id=\"result" + cmd.id + "\"";
+        html += " data-index=\"" + idx + "\"";
+        html += " data-cmdId=\"" + cmd.id + "\"";
+        // html += " data-cmd=\"" + cmd.cmd + "\"";
+        // html += " onclick=gui.cmdPalette.onResultClick(event)>";
 
         if (this.#options.showIcons)
             html += "<span class=\"icon icon-" + (cmd.icon || "square") + "\"></span>";
@@ -226,9 +282,9 @@ export default class CommandPalette
             {
                 html += "<span class=\"right\">Usersetting: [ " + userSettings.get(cmd.userSetting) + " ]</span>";
             }
-            html += "</div>";
 
         }
+        html += "</div>";
         return html;
     }
 
@@ -238,6 +294,7 @@ export default class CommandPalette
     doSearch(str)
     {
         this._lastSearch = str;
+        this.#resultCommands = [];
 
         let html = "";
         ele.byId("searchresult_cmd").innerHTML = html;
@@ -247,6 +304,7 @@ export default class CommandPalette
         let count = 0;
 
         if (this.#options.commands)
+        {
             for (let i = 0; i < this.#options.commands.length; i++)
             {
                 const cmd = this.#options.commands[i].cmd;
@@ -257,6 +315,7 @@ export default class CommandPalette
                     count++;
                 }
             }
+        }
 
         if (this.#options.cablesCommands)
         {
@@ -295,26 +354,43 @@ export default class CommandPalette
         this._numResults = count;
         ele.byId("searchresult_cmd").innerHTML = html;
 
+        for (let i = 0; i < this.#resultCommands.length; i++)
+        {
+            const id = "result" + this.#resultCommands[i].id;
+            ele.byId(id).addEventListener("click", (e) =>
+            {
+                this.onResultClick(e);
+            });
+        }
+
         setTimeout(() =>
         {
-            this._cursorIndex = 0;
+            this.#cursorIndex = 0;
             this.navigate();
         }, 10);
     }
 
+    /**
+     * @param {number} [dir]
+     */
     navigate(dir)
     {
-        if (dir) this._cursorIndex += dir;
-        if (this._cursorIndex < 0) this._cursorIndex = this._numResults - 1;
-        if (this._cursorIndex >= this._numResults) this._cursorIndex = 0;
+        if (dir) this.#cursorIndex += dir;
+        if (this.#cursorIndex < 0) this.#cursorIndex = this._numResults - 1;
+        if (this.#cursorIndex >= this._numResults) this.#cursorIndex = 0;
 
         ele.forEachClass("result", (e) => { e.classList.remove("selected"); });
 
-        const e = ele.byId("result" + this._cursorIndex);
-        if (e)
+        // const e = ele.byId("result" + this.#resultCommands[this.#cursorIndex]);
+        const c = this.#resultCommands[this.#cursorIndex];
+        if (c)
         {
-            e.classList.add("selected");
-            e.scrollIntoView({ "block": "end" });
+            const el = ele.byId("result" + c.id);
+            if (el)
+            {
+                el.classList.add("selected");
+                el.scrollIntoView({ "block": "end" });
+            }
         }
     }
 

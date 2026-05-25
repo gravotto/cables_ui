@@ -1,5 +1,6 @@
 import { ele } from "cables-shared-client";
 import { Op, utils } from "cables";
+import { EventListener } from "cables-shared-client/src/eventlistener.js";
 import Tab from "../../elements/tabpanel/tab.js";
 import { getHandleBarHtml } from "../../utils/handlebars.js";
 import { GuiText } from "../../text.js";
@@ -25,7 +26,10 @@ export default class FindTab
     #tabs;
     #toggles = ["currentSubpatch", "outdated", "attention", "bookmarked", "commented", "unconnected", "user", "error", "warning", "hint", "dupassets", "extassets", "textures", "history", "activity", "notcoreops", "recent", "selected", "animated"];
     #eleInput = null;
+
+    /** @type {EventListener[]}  */
     #listenerids = [];
+
     #lastSearch = "";
     #lastClicked = -1;
     #lastSelected = -1;
@@ -63,7 +67,6 @@ export default class FindTab
         this._updateCb = this.searchAfterPatchUpdate.bind(this);
 
         const listenerChanged = gui.opHistory.on("changed", this.updateHistory.bind(this));
-        this.#listenerids.push(listenerChanged);
 
         this.#listenerids.push(gui.corePatch().on("warningErrorIconChange", this._updateCb));
         this.#listenerids.push(gui.corePatch().on("onOpDelete", this._updateCb));
@@ -79,11 +82,10 @@ export default class FindTab
             for (let i = 0; i < this.#listenerids.length; i++) gui.corePatch().off(this.#listenerids[i]);
 
             this.#listenerids = [];
-
             this.clearHighlightOps();
-
             this.#closed = true;
         });
+
         gui.corePatch().on("subpatchesChanged", () =>
         {
             this.clearHighlightOps();
@@ -274,6 +276,7 @@ export default class FindTab
         html += "</h3>";
 
         if (result.hint) html += "<div class=\"warning-error-level0\">" + result.hint + "</div>";
+        if (result.warning) html += "<div class=\"warning-error-level1\">" + result.warning + "</div>";
         if (result.error) html += "<div class=\"warning-error-level2\">" + result.error + "</div>";
         if (result.history) html += "<span class=\"search-history-item\">" + result.history + "</span><br/>";
         if (op.uiAttribs.comment) html += "<span style=\"color: var(--color-special);\"> // " + op.uiAttribs.comment + "</span><br/>";
@@ -389,8 +392,12 @@ export default class FindTab
                     const op = ops[i];
 
                     if (op.uiAttribs && op.uiAttribs.uierrors && op.uiAttribs.uierrors.length > 0)
+                    {
                         for (let j = 0; j < op.uiAttribs.uierrors.length; j++) if (op.uiAttribs.uierrors[j].level == 2)
                             results.push({ op, "score": 2, "error": op.uiAttribs.uierrors[j].txt });
+                        for (let j = 0; j < op.uiAttribs.uierrors.length; j++) if (op.uiAttribs.uierrors[j].level == 1)
+                            results.push({ op, "score": 2, "error": op.uiAttribs.uierrors[j].txt });
+                    }
                 }
             }
 
@@ -469,7 +476,7 @@ export default class FindTab
 
                     if (op.uiAttribs && op.uiAttribs.uierrors && op.uiAttribs.uierrors.length > 0)
                         for (let j = 0; j < op.uiAttribs.uierrors.length; j++) if (op.uiAttribs.uierrors[j].level == 1)
-                            results.push({ op, "score": 1 });
+                            results.push({ op, "score": 1, "warning": op.uiAttribs.uierrors[j].txt });
                 }
             }
             else
@@ -479,7 +486,8 @@ export default class FindTab
                 {
                     const op = ops[i];
                     if (op.uiAttribs && op.uiAttribs.uierrors && op.uiAttribs.uierrors.length > 0)
-                        results.push({ op, "score": 1 });
+                        for (let j = 0; j < op.uiAttribs.uierrors.length; j++) if (op.uiAttribs.uierrors[j].level == 0)
+                            results.push({ op, "score": 1, "warning": op.uiAttribs.uierrors[j].txt });
                 }
             }
             else
@@ -720,7 +728,7 @@ export default class FindTab
                 const op = ops[i];
                 for (let j = 0; j < op.portsIn.length; j++)
                 {
-                    if (op.portsIn[j].getVariableName() && op.portsIn[j].getVariableName().toLowerCase().indexOf(str) > -1)
+                    if (op.portsIn[j].getVariableName() && op.portsIn[j].getVariableName().toLowerCase && op.portsIn[j].getVariableName().toLowerCase().indexOf(str) > -1)
                     {
                         score += 2;
                         where += "port \"" + op.portsIn[j].name + "\" assigned to var " + op.portsIn[j].getVariableName();

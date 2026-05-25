@@ -318,8 +318,9 @@ export default class ServerOps
      * @param {string} opIdentifier
      * @param {function} [next]
      * @param {object} [options]
+     * @param {boolean} [reloadDependencies=true]
      */
-    execute(opIdentifier, next = null, options = {})
+    execute(opIdentifier, next = null, options = {}, reloadDependencies = true)
     {
         options = options || {};
         gui.savedState.pause();
@@ -360,7 +361,7 @@ export default class ServerOps
                 if (next) next(newOps, options.refOldOp);
                 gui.corePatch().emitEvent("opReloaded", name, newOps[0]);
             }, options.refOldOp);
-        }, true);
+        }, reloadDependencies);
     }
 
     clone(oldname, name, cb, options)
@@ -1701,7 +1702,7 @@ export default class ServerOps
 
     getMissingOps(proj)
     {
-        const perf = gui.uiProfiler.start("[opsserver] gerMissingOps");
+        const perf = gui.uiProfiler.start("[opsserver] getMissingOps");
 
         let missingOps = [];
         const missingOpsFound = [];
@@ -1729,6 +1730,7 @@ export default class ServerOps
 
     isLoaded(op)
     {
+        const perf = gui.uiProfiler.start("[opsserver] isloaded");
         const opDocs = gui.opDocs.getOpDocs();
         const opIdentifier = this.getOpIdentifier(op);
         // FIXME: this is very convoluted since opdocs have .id and .name but projectops have .opId and .objName and the likes...unify some day :/
@@ -1744,6 +1746,7 @@ export default class ServerOps
             // we found an op in opdocs, check if we also have the code and needed libraries
             loaded = this.opCodeLoaded(foundOp);
         }
+        perf.finish();
         return loaded;
     }
 

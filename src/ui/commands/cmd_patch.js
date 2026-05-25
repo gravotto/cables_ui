@@ -654,9 +654,9 @@ class CmdPatch
                         gui.patchView.addOp(newOpname,
                             {
                                 "uiAttribs":
-                            {
-                                "translate": { "x": origOpsBounds.minX, "y": origOpsBounds.minY }
-                            },
+                                {
+                                    "translate": { "x": origOpsBounds.minX, "y": origOpsBounds.minY }
+                                },
                                 "onOpAdd": (newOp) =>
                                 {
                                     subPatchOpUtil.createBlueprint2Op(newOp, OpTempSubpatch, () =>
@@ -1151,16 +1151,13 @@ class CmdPatch
         const p = CABLES.UI.OPSELECT.linkNewOpToPort;
         if (portVar)
         {
-            p.setVariable("choose...");
-            // gui.showVarSelect((e) =>
-            // {
-            //     console.log("text", e);
-            // });
+            gui.showVarSelect((e) =>
+            {
+                console.log("text", e);
+                p.setVariable(e.cmd);
+                gui.opParams.show(p.op.id);
+            });
 
-            // p.op.refreshParams();
-            // if (options.showParams)
-            gui.opParams.show(p.op.id);
-            //  ww
             return;
         }
 

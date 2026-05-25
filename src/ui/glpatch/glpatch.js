@@ -1,5 +1,6 @@
 import { Logger, ele, Events } from "cables-shared-client";
 import { Anim, CglContext, Op } from "cables";
+import { idleCallbackSoon } from "cables/src/core/utils.js";
 import GlRectInstancer from "../gldraw/glrectinstancer.js";
 import GlTextWriter from "../gldraw/gltextwriter.js";
 import GlText from "../gldraw/gltext.js";
@@ -27,6 +28,10 @@ import { GlSplineDrawer } from "../gldraw/glsplinedrawer.js";
 import { InputBindings } from "../inputbindings.js";
 import GlPatchAPI from "./patchapi.js";
 import { UiOp } from "../core_extend_op.js";
+import { GlLineDrawer } from "../gldraw/gllinedrawer.js";
+
+let idleSoon = null;
+let lastUpdate = 0;
 
 /**
  * rendering the patchfield
@@ -54,7 +59,10 @@ export default class GlPatch extends Events
     _mouseLeaveButtons = 0;
     _cutLine = [];
     cutLineActive = false;
+
+    /** @type {Object<string,GlOp>} */
     _glOpz = {};
+
     _hoverOps = [];
     _ignoreNonExistError = [];
     _hoverOpLongStartTime = 0;
@@ -71,7 +79,7 @@ export default class GlPatch extends Events
     _viewZoom = 0;
     needsRedraw = false;
 
-    /** @type {Object<String,GlOp>} */
+    /** @type {Object<string,GlOp>} */
     _selectedGlOps = {};
 
     links = {};
@@ -1608,7 +1616,16 @@ export default class GlPatch extends Events
             gui.corePatch().getOpById(id).setUiAttrib({ "selected": true });
         }
 
-        if (gui.patchView.getSelectedOps().length > 1)gui.patchView.showSelectedOpsPanel();
+        if (performance.now() - lastUpdate > 30 && gui.patchView.getSelectedOps().length > 1)
+        {
+
+            lastUpdate = performance.now();
+            idleSoon = idleCallbackSoon(idleSoon, () =>
+            {
+
+                gui.patchView.showSelectedOpsPanel();
+            });
+        }
     }
 
     /**
