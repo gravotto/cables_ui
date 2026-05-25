@@ -1,0 +1,63 @@
+.logList {
+  height: 100%;
+  overflow: scroll;
+  display: flex;
+  flex-direction: column-reverse;
+}
+.logList .logLineCode {
+  background-color: rgba(0, 0, 0, 0.75);
+  padding-left: 10px;
+  padding-right: 10px;
+}
+.logList .logLine {
+  margin-top: 2px;
+  background-color: #222;
+  font-family: monospace;
+}
+.logList .logLine * {
+  color: #aaa;
+}
+.logList .logLine .outerInitiator {
+  color: #777;
+}
+.logList .logLine .initiator, .logList .logLine a {
+  color: #ecce64;
+}
+.logList .logLine a {
+  text-decoration: underline;
+}
+.logList .logLine b {
+  font-weight: normal;
+  color: #fff;
+}
+.logList .logLine:hover {
+  background-color: #333;
+}
+.logList .initiator_gui {
+  color: var(--color_port_value);
+}
+.logList .logLevel1 {
+  background-color: rgb(48, 48, 3);
+}
+.logList .logLevel1:hover {
+  background-color: rgb(61, 61, 4);
+}
+.logList .logLevel2 {
+  background-color: rgb(52, 9, 9);
+}
+.logList .logLevel2:hover {
+  background-color: rgb(74, 13, 13);
+}
+.logList .logLevel99 {
+  background-color: transparent;
+}
+.logList .logLevel99 a {
+  text-decoration: none;
+  font-family: "SourceSansPro", sans-serif;
+}
+.logList .logLevel99:hover {
+  background-color: transparent;
+}
+.logList .loglineSpacer {
+  margin-bottom: 8px;
+}/*# sourceMappingURL=log.css.map */

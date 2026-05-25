@@ -1,0 +1,99 @@
+.cellmateNotification {
+  float: right;
+}
+
+.cellmateStatus {
+  font-family: monospace;
+  background-color: #151515;
+  padding: 5px;
+  outline: 1px solid #555;
+}
+
+.cellmatetable {
+  --color-grid: #444;
+  font-family: monospace;
+  display: grid;
+}
+.cellmatetable .row {
+  display: grid;
+  grid-template-columns: repeat(5, 100px);
+}
+.cellmatetable .head {
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+  display: inline-block;
+  background-color: #151515;
+  text-align: center;
+  outline: 1px solid var(--color-grid);
+}
+.cellmatetable .head.selected {
+  outline: 1px solid var(--color-grid);
+  background-color: #282800;
+  color: #ffff00;
+}
+.cellmatetable .cell,
+.cellmatetable .head {
+  border: 0px solid #aaa;
+  padding: 0px;
+  padding-bottom: 2px;
+  padding-right: 1px;
+  height: 20px;
+}
+.cellmatetable .cursor {
+  border: 1px solid #ffff00;
+}
+.cellmatetable .value {
+  background-color: #333;
+}
+.cellmatetable .selected {
+  background-color: #555526;
+  outline: 1px solid #888800;
+  color: #ffff00;
+}
+.cellmatetable input {
+  display: block;
+  background-color: #222;
+  color: #ccc;
+  width: calc(100% - 1px);
+  height: calc(100% - 1px);
+  outline: 1px solid var(--color-grid);
+  margin-bottom: 1px;
+  border: 1px solid transparent;
+  font-family: monospace;
+  padding: 0px;
+}
+.cellmatetable input:focus {
+  outline: 1px solid #00cccc;
+}
+.cellmatetable:focus {
+  outline: 1px solid #444;
+}
+.cellmatetable .numeric {
+  color: #4adab5;
+}
+
+.cellMateScrollHor,
+.cellMateScrollVert {
+  overflow: scroll;
+  position: absolute;
+  z-index: 8888888;
+}
+
+.cellMateScrollVert {
+  right: 0px;
+  width: 25px;
+  height: 500px;
+}
+.cellMateScrollVert div {
+  height: 1000px;
+}
+
+.cellMateScrollHor {
+  bottom: 25px;
+  width: 500px;
+  height: 30px;
+}
+.cellMateScrollHor div {
+  height: 1000px;
+}/*# sourceMappingURL=cellmate.css.map */

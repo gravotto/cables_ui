@@ -1,0 +1,10 @@
+.cablesCssUi #meta, .cablesCssUi #options {
+  z-index: 1;
+}
+.cablesCssUi .menubar, .cablesCssUi #subpatch_nav, .cablesCssUi #bgpreviewButtonsContainer, .cablesCssUi #bgpreview, .cablesCssUi .cbl_iconbarContainer {
+  z-index: 30;
+}
+
+.gluiPreviewLayer {
+  z-index: 1;
+}/*# sourceMappingURL=z-indexes.css.map */
