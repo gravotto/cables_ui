@@ -40,7 +40,7 @@ export default class EditorTabCodemirror extends Events
     helix = false;
 
     /**
-     * @param {object} options
+     * @param {import("../editor.js").EditorOptions} options
      * @param {boolean} [helix]
      */
     constructor(options, helix)
@@ -90,7 +90,7 @@ export default class EditorTabCodemirror extends Events
 
         let style = "";
 
-        if (!options.allowEdit) style = "background-color:#333;";
+        // if (!options.allowEdit) style = "background-color:#333;";
         const html = "<div class=\"\" id=\"editorcontent" + this.#tab.id + "\" style=\"width:100%;height:100%;overflow:auto;" + style + "\"></div>";
         this.#tab.html(html);
         this._eleId = "editorcontent" + this.#tab.id;
@@ -137,7 +137,6 @@ export default class EditorTabCodemirror extends Events
                         "annotations": Transaction.addToHistory.of(false),
                     });
                 this.cmView.focus();
-                // this.setContent(content);
                 if (this._options.onFinished) this._options.onFinished();
             });
         }
@@ -284,12 +283,24 @@ export default class EditorTabCodemirror extends Events
             );
         }
 
+        if (!this._options.allowEdit)
+        {
+            extensions.push(EditorState.readOnly.of(true));
+            extensions.push(EditorView.editable.of(false));
+            extensions.push(EditorView.theme({
+                "&": {
+                    "opacity": "0.75 !important"
+                } }));
+        }
+
         this.cmView = new EditorView(
             {
                 "parent": this.ele,
                 "extensions": extensions,
                 "doc": options.content || "",
             });
+
+        // this.cmView.state.readOnly.of(true);
 
         createOpDocButton(this.#tab, this);
         cb();
@@ -305,117 +316,117 @@ export default class EditorTabCodemirror extends Events
     {
         return [
 
-            snippetCompletion("setUiError = function (\"${1:id}\",\"${1:message}\")",
+            snippetCompletion("op.setUiError = function (\"${1:id}\",\"${1:message}\")",
                 {
                     "label": "op.inTriggerButton"
                 }),
 
-            snippetCompletion("inTriggerButton(\"${1:name}\")",
+            snippetCompletion("op.inTriggerButton(\"${1:name}\")",
                 {
                     "label": "op.inTriggerButton"
                 }),
 
-            snippetCompletion("inTrigger(\"${1:name}\")",
+            snippetCompletion("op.inTrigger(\"${1:name}\")",
                 {
                     "label": "op.inTrigger"
                 }),
 
-            snippetCompletion("inMultiPort(\"#1\", CABLES.OP_PORT_TYPE_NUMBER)",
+            snippetCompletion("op.inMultiPort(\"#1\", CABLES.OP_PORT_TYPE_NUMBER)",
                 {
                     "label": "op.inMultiPort"
                 }),
 
-            snippetCompletion("outTrigger(\"${1:name}\")",
+            snippetCompletion("op.outTrigger(\"${1:name}\")",
                 {
                     "label": "op.outTrigger"
                 }),
 
-            snippetCompletion("inBool(\"${1:name}\",${2:false})",
+            snippetCompletion("op.inBool(\"${1:name}\",${2:false})",
                 {
                     "label": "op.inBool"
                 }),
 
-            snippetCompletion("inInt(\"${1:name}\",${2:0})",
+            snippetCompletion("op.inInt(\"${1:name}\",${2:0})",
                 {
                     "label": "op.inInt"
                 }),
 
-            snippetCompletion("inFloatSlider(\"${1:name}\",${2:0})",
+            snippetCompletion("op.inFloatSlider(\"${1:name}\",${2:0})",
                 {
                     "label": "op.inFloatSlider"
                 }),
 
-            snippetCompletion("inFloat(\"${1:name}\",${2:0})",
+            snippetCompletion("op.inFloat(\"${1:name}\",${2:0})",
                 {
                     "label": "op.inFloat"
                 }),
 
-            snippetCompletion("inDropDown(\"${1:name}\",\${2:[\"option a\",\"option b\"]}\)",
+            snippetCompletion("op.inDropDown(\"${1:name}\",\${2:[\"option a\",\"option b\"]}\)",
                 {
                     "label": "op.inDropDown"
                 }),
 
-            snippetCompletion("inSwitch(\"${1:name}\",\${2:[\"option a\",\"option b\"]}\,\${3:\"default\"}\)",
+            snippetCompletion("op.inSwitch(\"${1:name}\",\${2:[\"option a\",\"option b\"]}\,\${3:\"default\"}\)",
                 {
                     "label": "op.inSwitch"
                 }),
 
-            snippetCompletion("inStringEditor(\"${1:name}\",\"${2:default}\",\"${3:syntax}\")",
+            snippetCompletion("op.inStringEditor(\"${1:name}\",\"${2:default}\",\"${3:syntax}\")",
                 {
                     "label": "op.inStringEditor"
                 }),
 
-            snippetCompletion("inString(\"${1:name}\",\"${2:default}\")",
+            snippetCompletion("op.inString(\"${1:name}\",\"${2:default}\")",
                 {
                     "label": "op.inString"
                 }),
 
-            snippetCompletion("inObject(\"${1:name}\")",
+            snippetCompletion("op.inObject(\"${1:name}\")",
                 {
                     "label": "op.inObject"
                 }),
 
-            snippetCompletion("inTexture(\"${1:name}\")",
+            snippetCompletion("op.inTexture(\"${1:name}\")",
                 {
                     "label": "op.inTexture"
                 }),
 
-            snippetCompletion("inArray(\"${1:name}\")",
+            snippetCompletion("op.inArray(\"${1:name}\")",
                 {
                     "label": "op.inArray"
                 }),
 
-            snippetCompletion("inUrl(\"${1:name}\")",
+            snippetCompletion("op.inUrl(\"${1:name}\")",
                 {
                     "label": "op.inUrl"
                 }),
 
-            snippetCompletion("outNumber(\"${1:name}\")",
+            snippetCompletion("op.outNumber(\"${1:name}\")",
                 {
                     "label": "op.outNumber"
                 }),
 
-            snippetCompletion("outBoolNum(\"${1:name}\")",
+            snippetCompletion("op.outBoolNum(\"${1:name}\")",
                 {
                     "label": "op.outBoolNum"
                 }),
 
-            snippetCompletion("outString(\"${1:name}\")",
+            snippetCompletion("op.outString(\"${1:name}\")",
                 {
                     "label": "op.outString"
                 }),
 
-            snippetCompletion("outObject(\"${1:name}\")",
+            snippetCompletion("op.outObject(\"${1:name}\")",
                 {
                     "label": "op.outObject"
                 }),
 
-            snippetCompletion("outArray(\"${1:name}\")",
+            snippetCompletion("op.outArray(\"${1:name}\")",
                 {
                     "label": "op.outArray"
                 }),
 
-            snippetCompletion("outTexture(\"${1:name}\")",
+            snippetCompletion("op.outTexture(\"${1:name}\")",
                 {
                     "label": "op.outTexture"
                 }),
